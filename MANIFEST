@@ -1,0 +1,12 @@
+bin/clad
+Build.PL
+Changes
+eg/Clad.conf
+lib/Clustericious/Admin.pm
+Makefile.PL
+MANIFEST
+META.json
+META.yml
+README
+t/00-load.t
+t/pod.t

@@ -1,0 +1,15 @@
+Clustericious-Admin
+
+This is a simple parallel SSH client.
+
+See the pod for details.
+
+INSTALLATION
+
+To install this module, run the following commands:
+
+	perl Build.PL
+	./Build
+	./Build test
+	./Build install
+

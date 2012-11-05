@@ -1,0 +1,184 @@
+#!/usr/bin/env perl
+
+=head1 NAME
+
+clad -- A simple parallel ssh client.
+
+=head1 SYNOPSIS
+
+    clad [log options] [-n] [-a] [-l login] <cluster> <command>
+
+=head1 DESCRIPTION
+
+clad provides the ability to run the same command on several
+hosts at once.  The output is displayed unbuffered
+as the various hosts run the command.  The list of hosts
+is determined by reading a configuration file which associates
+names of clusters with lists of hosts.  The configuration file
+may also contain command aliases and environment settings.
+
+The command(s) will be executed under '/bin/sh -e' regardless
+of the login shell for the remote user.
+
+=head1 FEATURES
+
+=over
+
+=item * Cluster-specific and global environment settings
+
+=item * Event-driven unbuffered output (using L<Mojo::Reactor>)
+
+=item * Host chaining support
+
+=item * Perlish configuration for dynamic cluster settings
+
+=item * Command aliases
+
+=back
+
+=head1 OPTIONS
+
+=over
+
+=item B<-n>
+
+Dry run, just show the command that would be executed
+and each host.
+
+=item B<-a>
+
+Don't colorize the host names in the output.
+
+=item B<-l>
+
+Specify a login name for all ssh connections (proxies, too).
+
+=back
+
+=head1 EXAMPLES
+
+ clad -n mailhosts uname -a
+ clad webservers df -kh
+ clad --trace root webservers ping -i 1 localhost
+
+=head1 CONFIGURATION
+
+The configuration file is a L<Clustericious::Config>
+file (YAML or JSON L<Mojo::Template>'s ) and has three
+sections :
+
+env : environment settings for all commands
+run on all hosts.
+
+clusters : specifies the clusters.  A cluster
+is a label and a list of hosts. Each host
+can be either a hostname or an array of hostnames.
+If it is an array of hostnames it will be treated
+as a sequence of hosts through which to proxy, e.g.
+
+    ssh host1 ssh host2 ssh host3...
+
+If the first proxy host is the same for all the hosts
+in a cluster, then it can be given separately (see
+the example below).
+
+aliases : command aliases.  These may be either
+a single command or a list of commands.  Lists
+of commands will all be run in the same ssh
+session.  Environment variables in the env
+section will be merged with the global
+environment settings.
+
+=head1 SAMPLE CONFIGURATION
+
+A sample configuration file ~/etc/Clad.conf :
+
+    ---
+    env :
+        PATH : /usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/bin
+        PERL5LIB : /home/joe/perl5
+    clusters :
+        mailers :
+            - mail1
+            - mail2
+            - mail3
+        webservers :
+            env  :
+                USER : bob
+            hosts :
+                 - web1
+                 - web2
+        testweb :
+            proxy : test.example.com
+            hosts :
+                - testweb1
+                - testweb2
+    aliases :
+        check_ports : lsof -i -n
+        startweb : nginx start
+        config_pull :
+            - cd /usr/local/etc
+            - git pull
+
+Another example, using L<Mojo::Template> features :
+
+    ---
+    env :
+        PATH : /usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/bin
+        PERL5LIB : /home/joe/perl5
+    clusters :
+        mailers    : [ <%= join ',', map "mail".$_, 0..10 %> ],
+        webservers : [ <%= `/usr/local/bin/list_my_web_servers` %> ]
+
+=head1 NOTES
+
+Manipulating .ssh/config can also be used for proxying.
+For instance :
+
+    Host webdev1
+    ProxyCommand ssh firewall.example.com nc %h %p
+
+    Host webdev2
+    ProxyCommand ssh firewall.example.com nc %h %p
+
+=head1 SEE ALSO
+
+ L<Clustericious::Admin>
+ L<Clustericious::Config>
+ L<Log::Log4perl::CommandLine>
+
+ L<SSH::Batch>, L<Net::OpenSSH::Parallel>, L<Net::SSH::Mechanize>, L<helm>
+
+=cut
+
+use feature 'say';
+use File::Basename 'dirname';
+use File::Spec;
+use Log::Log4perl::CommandLine (':all', ':loginit' => <<"EOT");
+           log4perl.rootLogger = INFO, Screen
+           log4perl.appender.Screen = Log::Log4perl::Appender::ScreenColoredLevels
+           log4perl.appender.Screen.layout = Log::Log4perl::Layout::PatternLayout
+           log4perl.appender.Screen.layout.ConversionPattern = @{[ $ENV{HARNESS_ACTIVE} ? '#' : '' ]} [%-5p] %d %F{1} (%L) %m %n
+EOT
+
+use lib join '/', File::Spec->splitdir(dirname(__FILE__)), 'lib';
+use lib join '/', File::Spec->splitdir(dirname(__FILE__)), '..', 'lib';
+use lib join '/', File::Spec->splitdir(dirname(__FILE__)), '..', 'lib', 'perl';
+
+use Clustericious::Admin;
+use Getopt::Std qw/getopts/;
+
+unless (@ARGV >=2 ) {
+    say "Not enough arguments : @ARGV";
+    say "usage $0 <cluster> <command>";
+    say "Available clusters : ".join ' ', Clustericious::Admin->clusters;
+    say "Available aliases  : ".join ' ', Clustericious::Admin->aliases;
+    exit;
+}
+
+my %opts;
+getopts('nal:',\%opts);
+Clustericious::Admin->run(\%opts,@ARGV);
+
+1;
+

@@ -1,0 +1,47 @@
+{
+   "abstract" : "Simple parallel ssh client.",
+   "author" : [
+      "Brian Duggan <brian.duggan@nasa.gov>"
+   ],
+   "dynamic_config" : 1,
+   "generated_by" : "Module::Build version 0.4003, CPAN::Meta::Converter version 2.112621",
+   "license" : [
+      "perl_5"
+   ],
+   "meta-spec" : {
+      "url" : "http://search.cpan.org/perldoc?CPAN::Meta::Spec",
+      "version" : "2"
+   },
+   "name" : "Clustericious-Admin",
+   "prereqs" : {
+      "configure" : {
+         "requires" : {
+            "Module::Build" : "0.40"
+         }
+      },
+      "runtime" : {
+         "requires" : {
+            "Clustericious::Config" : 0,
+            "Clustericious::Log" : 0,
+            "Hash::Merge" : 0,
+            "Log::Log4perl::CommandLine" : 0,
+            "Mojolicious" : "2.69",
+            "Term::ANSIColor" : 0,
+            "Test::More" : 0
+         }
+      }
+   },
+   "provides" : {
+      "Clustericious::Admin" : {
+         "file" : "lib/Clustericious/Admin.pm",
+         "version" : "0.21"
+      }
+   },
+   "release_status" : "stable",
+   "resources" : {
+      "license" : [
+         "http://dev.perl.org/licenses/"
+      ]
+   },
+   "version" : "0.21"
+}
