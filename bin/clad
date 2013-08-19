@@ -32,7 +32,11 @@ of the login shell for the remote user.
 
 =item * Perlish configuration for dynamic cluster settings
 
+=item * Filtering of banners
+
 =item * Command aliases
+
+=item * Command macros
 
 =back
 
@@ -89,6 +93,15 @@ session.  Environment variables in the env
 section will be merged with the global
 environment settings.
 
+macros : command macros.  These are a sequence
+of commands or aliases.  They will be executed
+in sequence, starting a new connection with each
+one.  Each command/alias may also optionally have
+a login associated with it.
+
+banners : banners which should be suppressed when
+displaying stderr.
+
 =head1 SAMPLE CONFIGURATION
 
 A sample configuration file ~/etc/Clad.conf :
@@ -116,11 +129,37 @@ A sample configuration file ~/etc/Clad.conf :
     aliases :
         check_ports : lsof -i -n
         startweb : nginx start
+        stopweb : nginx start
+        restartweb :
+            - apachectl stop
+            - apachectl start
         config_pull :
             - cd /usr/local/etc
             - git pull
+        build :
+            - cd project
+            - perl Build.PL
+            - ./Build
+            - ./Build test
+            - ./Build install
+    macros :
+         release :
+            - login : joe
+              command : build
+            - login : dev
+              command : restartweb
+     banners :
+            - text : |
 
-Another example, using L<Mojo::Template> features :
+
+                **********************************************
+                This is a welcome banner that you see whenever
+                you ssh to our server!
+                **********************************************
+                \n
+                \n
+
+Another example, using some L<Mojo::Template> features :
 
     ---
     env :
@@ -143,11 +182,13 @@ For instance :
 
 =head1 SEE ALSO
 
- L<Clustericious::Admin>
- L<Clustericious::Config>
- L<Log::Log4perl::CommandLine>
-
- L<SSH::Batch>, L<Net::OpenSSH::Parallel>, L<Net::SSH::Mechanize>, L<helm>
+L<Clustericious::Admin>,
+L<Clustericious::Config>,
+L<Log::Log4perl::CommandLine>,
+L<SSH::Batch>,
+L<Net::OpenSSH::Parallel>,
+L<Net::SSH::Mechanize>,
+L<helm>
 
 =cut
 
@@ -171,8 +212,8 @@ use Getopt::Std qw/getopts/;
 unless (@ARGV >=2 ) {
     say "Not enough arguments : @ARGV";
     say "usage $0 <cluster> <command>";
-    say "Available clusters : ".join ' ', Clustericious::Admin->clusters;
-    say "Available aliases  : ".join ' ', Clustericious::Admin->aliases;
+    say "Available clusters : ".join ' ', Clustericious::Admin->clusters(default => []);
+    say "Available aliases  : ".join ' ', Clustericious::Admin->aliases(default => []);
     exit;
 }
 

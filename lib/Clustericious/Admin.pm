@@ -10,6 +10,10 @@ clusters of machines.
 
 Most of the documentation is in the command line tool L<clad>.
 
+=head1 SEE ALSO
+
+L<clad>
+
 =head1 TODO
 
 Handle escaping of quote/meta characters better.
@@ -27,6 +31,8 @@ use Term::ANSIColor;
 use Hash::Merge qw/merge/;
 use Mojo::Reactor;
 use Data::Dumper;
+use Clone qw/clone/;
+use 5.10.0;
 
 use warnings;
 use strict;
@@ -36,28 +42,22 @@ our @colors = qw/cyan green/;
 our %waiting;
 our %filtering;
 our $SSHCMD = "ssh -o StrictHostKeyChecking=no -o BatchMode=yes -o PasswordAuthentication=no";
-our @filter = ( (split /\n/, <<DONE), "", "", "" );
-
-      ---------------------------------------------------------------
-
-              WARNING!  This is a U.S. Government Computer
-
-        This U.S. Government computer is for authorized users only.
-
-        By accessing this system, you are consenting to complete
-        monitoring with no expectation of privacy.  Unauthorized
-        access or use may subject you to disciplinary action and 
-        criminal prosecution.
-
-      ---------------------------------------------------------------
-
-
-DONE
 
 sub _conf {
     our $conf;
     $conf ||= Clustericious::Config->new("Clad");
     return $conf;
+}
+
+sub banners {
+    our $banners;
+    $banners ||= _conf->banners(default => []);
+    for (@$banners) {
+        $_->{text} =~ s/\\n/\n/g;
+        my @lines = $_->{text} =~ /^(.*)$/mg;
+        $_->{lines} = \@lines;
+    }
+    return $banners;
 }
 
 sub _is_builtin {
@@ -114,26 +114,29 @@ sub _queue_command {
             print "$line\n";
          });
 
+    my $banners = banners();
     $w->io(
         $err,
         sub {
             my ($readable, $writable) = @_;
+            state $filters = [];
             return if eof($err);
             my $skip;
             chomp (my $line = <$err>);
-            if (!defined($filtering{$host})) {
-                $filtering{$host} = [ @filter ];
-            } elsif ($line eq (' 'x 6).('-' x 63) && !@{ $filtering{$host} }) {
-                $filtering{$host} = [ @filter ];
-                shift @{ $filtering{$host} };
-            }
-            if (scalar @{ $filtering{$host} }) {
-                my $f = $filtering{$host}->[0];
-                if ($f eq $line) {
+            for (0..$#$banners) {
+                $filters->[$_] //= { line => 0 };
+                my $l = \( $filters->[$_]{line} );
+                my $filter_line = $banners->[$_]{lines}[$$l];
+                if ($line eq $filter_line) {
+                    TRACE "matched filter $_ (line $$l) : '$line'";
                     $skip = 1;
-                    shift @{ $filtering{$host} };
+                    $$l++;
+                    if ($$l >= @{ $banners->[$_]{lines} }) {
+                        $filters->[$_] = undef;
+                    }
                 } else {
-                    DEBUG "line vs filter  : '$line' vs '$f'" if $f;
+                    $filters->[$_] &&= undef;
+                    TRACE "line vs filter number $_ : '$line' vs '$filter_line'";
                 }
             }
             return if $skip;
@@ -159,7 +162,7 @@ sub clusters {
 }
 
 sub aliases {
-    my %aliases = _conf->aliases;
+    my %aliases = _conf->aliases(default => {});
     return sort keys %aliases;
 }
 
@@ -170,7 +173,9 @@ sub run {
     my $user = $opts->{l};
     @colors = () if $opts->{a};
     my $cluster = shift or LOGDIE "Missing cluster";
-    my $hosts = _conf->clusters->$cluster(default => '') or LOGDIE "no hosts for cluster $cluster";
+    my $clusters = _conf->clusters(default => '') or LOGDIE "no clusters defined";
+    ref($clusters) =~ /config/i or LOGDIE "clusters should be a yaml hash";
+    my $hosts = $clusters->$cluster(default => '') or LOGDIE "no hosts for cluster $cluster";
     my $cluster_env = {};
     my @hosts;
     if (ref $hosts eq 'ARRAY') {
@@ -186,7 +191,7 @@ sub run {
     my $alias = $_[0] or LOGDIE "No command given";
 
     my @command;
-    if (my $command = _conf->aliases->{$alias}) {
+    if (my $command = _conf->aliases(default => {})->{$alias}) {
         DEBUG "Found alias $alias";
         @command = ref $command ? @$command : ( $command );
     } else {
