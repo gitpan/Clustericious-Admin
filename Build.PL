@@ -7,6 +7,7 @@ my $builder = Module::Build->new(
     license             => 'perl',
     dist_author         => q{Brian Duggan <brian.duggan@nasa.gov>},
     dist_version_from   => 'lib/Clustericious/Admin.pm',
+    configure_requires => { 'Module::Build' => 0.40 },
     requires => {
         'Test::More'            => 0,
         'Hash::Merge'           => 0,

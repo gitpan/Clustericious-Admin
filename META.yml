@@ -4,7 +4,7 @@ author:
   - 'Brian Duggan <brian.duggan@nasa.gov>'
 build_requires: {}
 configure_requires:
-  Module::Build: 0.40
+  Module::Build: 0.4
 dynamic_config: 1
 generated_by: 'Module::Build version 0.4002, CPAN::Meta::Converter version 2.120921'
 license: perl
@@ -15,7 +15,7 @@ name: Clustericious-Admin
 provides:
   Clustericious::Admin:
     file: lib/Clustericious/Admin.pm
-    version: 0.21
+    version: 0.23
 requires:
   Clustericious::Config: 0
   Clustericious::Log: 0
@@ -26,4 +26,4 @@ requires:
   Test::More: 0
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.21
+version: 0.23

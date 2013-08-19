@@ -37,7 +37,7 @@ use 5.10.0;
 use warnings;
 use strict;
 
-our $VERSION = '0.21';
+our $VERSION = '0.23';
 our @colors = qw/cyan green/;
 our %waiting;
 our %filtering;
