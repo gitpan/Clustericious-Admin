@@ -1,10 +1,10 @@
 {
    "abstract" : "Simple parallel ssh client.",
    "author" : [
-      "Brian Duggan <brian.duggan@nasa.gov>"
+      "Graham Ollis <plicease@cpan.org>"
    ],
-   "dynamic_config" : 1,
-   "generated_by" : "Module::Build version 0.4002, CPAN::Meta::Converter version 2.120921",
+   "dynamic_config" : 0,
+   "generated_by" : "Dist::Zilla version 5.006, CPAN::Meta::Converter version 2.120921",
    "license" : [
       "perl_5"
    ],
@@ -14,34 +14,38 @@
    },
    "name" : "Clustericious-Admin",
    "prereqs" : {
+      "build" : {
+         "requires" : {
+            "Module::Build" : "0.3601"
+         }
+      },
       "configure" : {
          "requires" : {
-            "Module::Build" : "0.4"
+            "Module::Build" : "0.3601"
          }
       },
       "runtime" : {
          "requires" : {
+            "Clone" : "0",
             "Clustericious::Config" : "0",
             "Clustericious::Log" : "0",
+            "Data::Dumper" : "0",
             "Hash::Merge" : "0",
+            "IPC::Open3" : "0",
             "Log::Log4perl::CommandLine" : "0",
             "Mojolicious" : "2.69",
-            "Term::ANSIColor" : "0",
+            "Symbol" : "0",
+            "perl" : "v5.10.0"
+         }
+      },
+      "test" : {
+         "requires" : {
+            "Test::Clustericious::Config" : "0",
             "Test::More" : "0"
          }
       }
    },
-   "provides" : {
-      "Clustericious::Admin" : {
-         "file" : "lib/Clustericious/Admin.pm",
-         "version" : "0.23"
-      }
-   },
    "release_status" : "stable",
-   "resources" : {
-      "license" : [
-         "http://dev.perl.org/licenses/"
-      ]
-   },
-   "version" : "0.23"
+   "version" : "0.24"
 }
+

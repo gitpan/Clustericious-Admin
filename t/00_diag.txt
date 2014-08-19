@@ -1,0 +1,12 @@
+Clone
+Clustericious::Config
+Clustericious::Log
+Data::Dumper
+Hash::Merge
+IPC::Open3
+Log::Log4perl::CommandLine
+Module::Build
+Mojolicious
+Symbol
+Test::Clustericious::Config
+Test::More
