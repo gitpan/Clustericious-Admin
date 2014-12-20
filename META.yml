@@ -3,27 +3,27 @@ abstract: 'Simple parallel ssh client.'
 author:
   - 'Graham Ollis <plicease@cpan.org>'
 build_requires:
-  Module::Build: 0.3601
-  Test::Clustericious::Config: 0
-  Test::More: 0
+  Module::Build: '0.3601'
+  Test::Clustericious::Config: '0'
+  Test::More: '0'
 configure_requires:
-  Module::Build: 0.3601
+  Module::Build: '0.3601'
 dynamic_config: 0
 generated_by: 'Dist::Zilla version 5.006, CPAN::Meta::Converter version 2.120921'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
-  version: 1.4
+  version: '1.4'
 name: Clustericious-Admin
 requires:
-  Clone: 0
-  Clustericious::Config: 0
-  Clustericious::Log: 0
-  Data::Dumper: 0
-  Hash::Merge: 0
-  IPC::Open3: 0
-  Log::Log4perl::CommandLine: 0
-  Mojolicious: 2.69
-  Symbol: 0
+  Clone: '0'
+  Clustericious::Config: '0'
+  Clustericious::Log: '0'
+  Data::Dumper: '0'
+  Hash::Merge: '0'
+  IPC::Open3: '0'
+  Log::Log4perl::CommandLine: '0'
+  Mojolicious: '2.69'
+  Symbol: '0'
   perl: v5.10.0
-version: 0.24
+version: '0.25'

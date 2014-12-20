@@ -1,3 +1,9 @@
+BEGIN {
+  unless(eval q{ use v5.10.0; 1}) {
+    print "Perl v5.10.0 or better required\n";
+    exit;
+  }
+}
 
 use strict;
 use warnings;
@@ -17,7 +23,7 @@ my %module_build_args = (
     "Graham Ollis <plicease\@cpan.org>"
   ],
   "dist_name" => "Clustericious-Admin",
-  "dist_version" => "0.24",
+  "dist_version" => "0.25",
   "license" => "perl",
   "module_name" => "Clustericious::Admin",
   "recommends" => {},
